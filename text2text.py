@@ -1,22 +1,9 @@
 from openai import AzureOpenAI
 import logging
 import json
+from search import search_ddg
 
 from settings import api_version, azure_endpoint, api_key, model
-
-
-def get_current_weather(location, format="fahrenheit"):
-    """Get the current weather in a given location"""
-    if "tokyo" in location.lower():
-        return json.dumps({"location": "Tokyo", "temperature": "10", "unit": "celsius"})
-    elif "san francisco" in location.lower():
-        return json.dumps(
-            {"location": "San Francisco", "temperature": "72", "unit": "fahrenheit"}
-        )
-    elif "paris" in location.lower():
-        return json.dumps({"location": "Paris", "temperature": "22", "unit": "celsius"})
-    else:
-        return json.dumps({"location": location, "temperature": "unknown"})
 
 
 class OpenAIClient:
@@ -61,27 +48,31 @@ class OpenAIClient:
                 ],
                 functions=[
                     {
-                        "name": "get_current_weather",
-                        "description": "Get the current weather",
+                        "name": "search_ddg",
+                        "description": "Searches for a query on DuckDuckGo and returns the abstract from the JSON response",
                         "parameters": {
                             "type": "object",
                             "properties": {
-                                "location": {
+                                "query": {
                                     "type": "string",
-                                    "description": "The city and state, e.g. San Francisco, CA",
-                                },
-                                "format": {
-                                    "type": "string",
-                                    "enum": ["celsius", "fahrenheit"],
-                                    "description": "The temperature unit to use. Infer this from the users location.",
-                                },
+                                    "description": "The search query, e.g. Python Programming",
+                                }
                             },
-                            "required": ["location", "format"],
+                            "required": ["query"],
                         },
                     }
                 ],
                 function_call="auto",
             )
+            response_message = response.choices[0].message
+
+            if response_message.function_call:
+                print("HERE")
+                function_name = response_message.function_call.name
+                function_args = json.loads(response_message.function_call.arguments)
+                return globals()[function_name](**function_args)
+            
+            print("NOW HERE")
 
             return response.choices[0].message
         except Exception as e:
@@ -91,12 +82,7 @@ class OpenAIClient:
 
 if __name__ == "__main__":
     client = OpenAIClient()
-    response_message = client.get_response_raw(
-        "What's the weather like in San Francisco, Tokyo, and Paris?"
+    response = client.get_response_raw(
+        "Python Programming"
     )
-    print(response_message.function_call)
-    function_name = response_message.function_call.name
-    function_args = json.loads(response_message.function_call.arguments)
-    print(f"{function_name=}")
-    print(f"{function_args=}")
-    print(get_current_weather(**function_args))
+    print(response)
