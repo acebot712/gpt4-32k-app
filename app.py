@@ -23,7 +23,7 @@ local_path = st.text_input("Enter a local path (optional):")
 if local_path:
     # Get an instance of the PythonFileReader class.
     file_reader = PythonFileReader(local_path)
-    file_contents = file_reader.get_files_content()
+    file_contents = file_reader.get_git_tracked_files_content()
     # Append files content to the conversation history as user messages.
     st.session_state.conversation_history += [(content, 'user') for content in file_contents]
 

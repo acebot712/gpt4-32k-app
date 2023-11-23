@@ -27,12 +27,6 @@ agent_chain = initialize_agent(
     max_iterations=5,
 )
 
-for idx, message in enumerate(agent_chain.agent.llm_chain.prompt.messages):
-    print(idx)
-    print(message)
-
-print(agent_chain.agent.llm_chain.prompt.messages[0])
-
 response = agent_chain(
     {
         "input": "Tell me more about yourself"
@@ -40,4 +34,3 @@ response = agent_chain(
 )
 # print(response)
 print(response["output"])
-
