@@ -1,7 +1,6 @@
 from langchain.agents import AgentType, initialize_agent, load_tools
 from langchain.memory import ConversationBufferMemory
 from langchain.chat_models import AzureChatOpenAI
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 import os
 from dotenv import load_dotenv
 
@@ -19,31 +18,26 @@ llm = AzureChatOpenAI(
     model_name=os.environ.get("MODEL_NAME"),
 )
 
-prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", "You are the world's best coding assistant"),
-        ("user", "{input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-    ]
-)
-
 agent_chain = initialize_agent(
     tools,
     llm,
     agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
     memory=memory,
-    prompt=prompt,
     verbose=True,
-
     max_iterations=5,
 )
 
+for idx, message in enumerate(agent_chain.agent.llm_chain.prompt.messages):
+    print(idx)
+    print(message)
+
+print(agent_chain.agent.llm_chain.prompt.messages[0])
 
 response = agent_chain(
     {
-        "input": "Tell me more about the latest lamborghini car that got released. Do tell me its release date"
+        "input": "Tell me more about yourself"
     }
 )
-print(response)
+# print(response)
 print(response["output"])
 
